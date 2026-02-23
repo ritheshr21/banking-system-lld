@@ -1,0 +1,10 @@
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\BankingSystemApplication.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\Account.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\enums\AccountStatus.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\enums\Role.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\enums\TransactionType.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\Transaction.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\entity\User.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\repository\AccountRepository.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\repository\TransactionRepository.java
+C:\LLD Project\banking-system\src\main\java\com\rith\banking_system\repository\UserRepository.java
