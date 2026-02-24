@@ -1,5 +1,9 @@
 package com.rith.banking_system.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.rith.banking_system.dto.CreateAccountRequest;
 import com.rith.banking_system.dto.TransactionRequest;
+import com.rith.banking_system.dto.TransactionResponse;
 import com.rith.banking_system.dto.TransferRequest;
 import com.rith.banking_system.service.AccountService;
 
@@ -46,5 +51,12 @@ public class AccountController {
                 request.getUserId(),
                 request.getAccountNumber());
         return "Account created successfully";
+    }
+
+    @GetMapping("/{accountNumber}/transactions")
+    public List<TransactionResponse> getTransactions(
+            @PathVariable String accountNumber) {
+
+        return accountService.getTransactionHistory(accountNumber);
     }
 }
