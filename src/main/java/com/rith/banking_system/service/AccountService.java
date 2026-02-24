@@ -12,9 +12,12 @@ import com.rith.banking_system.entity.enums.AccountStatus;
 import com.rith.banking_system.entity.enums.TransactionType;
 import com.rith.banking_system.exception.AccountFrozenException;
 import com.rith.banking_system.exception.AccountNotFoundException;
+import com.rith.banking_system.exception.DuplicateAccountException;
 import com.rith.banking_system.exception.InsufficientBalanceException;
+import com.rith.banking_system.exception.UserNotFoundException;
 import com.rith.banking_system.repository.AccountRepository;
 import com.rith.banking_system.repository.TransactionRepository;
+import com.rith.banking_system.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,13 +27,16 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
-    public Account createAccount(User user, String accountNumber) {
+    public Account createAccount(Long userId, String accountNumber) {
 
         if (accountRepository.existsByAccountNumber(accountNumber)) {
-            throw new RuntimeException("Account number already exists");
+            throw new DuplicateAccountException("Account number already exists");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         Account account = Account.builder()
                 .accountNumber(accountNumber)
                 .balance(0.0)

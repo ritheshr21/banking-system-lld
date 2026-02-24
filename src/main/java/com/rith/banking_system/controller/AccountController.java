@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rith.banking_system.dto.CreateAccountRequest;
 import com.rith.banking_system.dto.TransactionRequest;
 import com.rith.banking_system.dto.TransferRequest;
 import com.rith.banking_system.service.AccountService;
@@ -37,5 +38,13 @@ public class AccountController {
                 request.getToAccount(),
                 request.getAmount());
         return "Transfer successful";
+    }
+
+    @PostMapping("/create")
+    public String createAccount(@RequestBody CreateAccountRequest request) {
+        accountService.createAccount(
+                request.getUserId(),
+                request.getAccountNumber());
+        return "Account created successfully";
     }
 }
