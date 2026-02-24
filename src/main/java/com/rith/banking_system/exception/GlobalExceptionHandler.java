@@ -14,63 +14,93 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleAccountNotFound(
-            AccountNotFoundException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(AccountNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleAccountNotFound(
+                        AccountNotFoundException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "Account Not Found",
-                ex.getMessage(),
-                request.getRequestURI());
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.NOT_FOUND.value(),
+                                "Account Not Found",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
 
-    @ExceptionHandler(InsufficientBalanceException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientBalance(
-            InsufficientBalanceException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(InsufficientBalanceException.class)
+        public ResponseEntity<ErrorResponse> handleInsufficientBalance(
+                        InsufficientBalanceException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Insufficient Balance",
-                ex.getMessage(),
-                request.getRequestURI());
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Insufficient Balance",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
 
-    @ExceptionHandler(AccountFrozenException.class)
-    public ResponseEntity<ErrorResponse> handleFrozenAccount(
-            AccountFrozenException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(AccountFrozenException.class)
+        public ResponseEntity<ErrorResponse> handleFrozenAccount(
+                        AccountFrozenException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Account Frozen",
-                ex.getMessage(),
-                request.getRequestURI());
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Account Frozen",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(
-            Exception ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleGeneralException(
+                        Exception ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                ex.getMessage(),
-                request.getRequestURI());
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Internal Server Error",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        @ExceptionHandler(UserNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleUserNotFound(
+                        UserNotFoundException ex,
+                        HttpServletRequest request) {
+
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.NOT_FOUND.value(),
+                                "User Not Found",
+                                ex.getMessage(),
+                                request.getRequestURI());
+
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+
+        @ExceptionHandler(DuplicateAccountException.class)
+        public ResponseEntity<ErrorResponse> handleDuplicateAccount(
+                        DuplicateAccountException ex,
+                        HttpServletRequest request) {
+
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.CONFLICT.value(),
+                                "Duplicate Account",
+                                ex.getMessage(),
+                                request.getRequestURI());
+
+                return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+        }
 }
