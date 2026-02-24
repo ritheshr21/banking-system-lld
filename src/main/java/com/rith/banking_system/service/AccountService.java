@@ -1,10 +1,12 @@
 package com.rith.banking_system.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.rith.banking_system.dto.TransactionResponse;
 import com.rith.banking_system.entity.Account;
 import com.rith.banking_system.entity.Transaction;
 import com.rith.banking_system.entity.User;
@@ -126,5 +128,22 @@ public class AccountService {
                 .build();
 
         transactionRepository.save(transaction);
+    }
+
+    public List<TransactionResponse> getTransactionHistory(String accountNumber) {
+
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        List<Transaction> transactions = transactionRepository.findByAccount(account);
+
+        return transactions.stream()
+                .map(tx -> TransactionResponse.builder()
+                        .id(tx.getId())
+                        .amount(tx.getAmount())
+                        .type(tx.getType().name())
+                        .timestamp(tx.getTimestamp())
+                        .build())
+                .toList();
     }
 }
