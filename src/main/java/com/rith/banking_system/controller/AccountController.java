@@ -15,6 +15,7 @@ import com.rith.banking_system.dto.TransactionResponse;
 import com.rith.banking_system.dto.TransferRequest;
 import com.rith.banking_system.service.AccountService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,19 +26,19 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping("/deposit")
-    public String deposit(@RequestBody TransactionRequest request) {
+    public String deposit(@Valid @RequestBody TransactionRequest request) {
         accountService.deposit(request.getAccountNumber(), request.getAmount());
         return "Deposit successful";
     }
 
     @PostMapping("/withdraw")
-    public String withdraw(@RequestBody TransactionRequest request) {
+    public String withdraw(@Valid @RequestBody TransactionRequest request) {
         accountService.withdraw(request.getAccountNumber(), request.getAmount());
         return "Withdrawal successful";
     }
 
     @PostMapping("/transfer")
-    public String transfer(@RequestBody TransferRequest request) {
+    public String transfer(@Valid @RequestBody TransferRequest request) {
         accountService.transfer(
                 request.getFromAccount(),
                 request.getToAccount(),
@@ -46,7 +47,7 @@ public class AccountController {
     }
 
     @PostMapping("/create")
-    public String createAccount(@RequestBody CreateAccountRequest request) {
+    public String createAccount(@Valid @RequestBody CreateAccountRequest request) {
         accountService.createAccount(
                 request.getUserId(),
                 request.getAccountNumber());

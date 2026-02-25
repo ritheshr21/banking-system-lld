@@ -2,6 +2,7 @@ package com.rith.banking_system.entity;
 
 import java.time.LocalDateTime;
 
+import com.rith.banking_system.entity.enums.TransactionDirection;
 import com.rith.banking_system.entity.enums.TransactionType;
 
 import jakarta.persistence.Column;
@@ -36,6 +37,9 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;
+
+    @Enumerated(EnumType.STRING)
+    private TransactionDirection direction;
 
     private LocalDateTime timestamp;
 
