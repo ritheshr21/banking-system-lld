@@ -13,4 +13,5 @@ public class TransactionResponse {
     private Double amount;
     private String type;
     private LocalDateTime timestamp;
+    private String direction;
 }

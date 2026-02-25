@@ -11,6 +11,7 @@ import com.rith.banking_system.entity.Account;
 import com.rith.banking_system.entity.Transaction;
 import com.rith.banking_system.entity.User;
 import com.rith.banking_system.entity.enums.AccountStatus;
+import com.rith.banking_system.entity.enums.TransactionDirection;
 import com.rith.banking_system.entity.enums.TransactionType;
 import com.rith.banking_system.exception.AccountFrozenException;
 import com.rith.banking_system.exception.AccountNotFoundException;
@@ -64,6 +65,7 @@ public class AccountService {
         Transaction transaction = Transaction.builder()
                 .amount(amount)
                 .type(TransactionType.DEPOSIT)
+                .direction(TransactionDirection.CREDIT)
                 .timestamp(LocalDateTime.now())
                 .account(account)
                 .build();
@@ -90,6 +92,7 @@ public class AccountService {
         Transaction transaction = Transaction.builder()
                 .amount(amount)
                 .type(TransactionType.WITHDRAW)
+                .direction(TransactionDirection.DEBIT)
                 .timestamp(LocalDateTime.now())
                 .account(account)
                 .build();
@@ -120,14 +123,24 @@ public class AccountService {
         accountRepository.save(sender);
         accountRepository.save(receiver);
 
-        Transaction transaction = Transaction.builder()
+        Transaction senderTransaction = Transaction.builder()
                 .amount(amount)
                 .type(TransactionType.TRANSFER)
+                .direction(TransactionDirection.DEBIT)
                 .timestamp(LocalDateTime.now())
                 .account(sender)
                 .build();
 
-        transactionRepository.save(transaction);
+        Transaction receiverTransaction = Transaction.builder()
+                .amount(amount)
+                .type(TransactionType.TRANSFER)
+                .direction(TransactionDirection.CREDIT)
+                .timestamp(LocalDateTime.now())
+                .account(receiver)
+                .build();
+
+        transactionRepository.save(senderTransaction);
+        transactionRepository.save(receiverTransaction);
     }
 
     public List<TransactionResponse> getTransactionHistory(String accountNumber) {
@@ -142,6 +155,7 @@ public class AccountService {
                         .id(tx.getId())
                         .amount(tx.getAmount())
                         .type(tx.getType().name())
+                        .direction(tx.getDirection().name())
                         .timestamp(tx.getTimestamp())
                         .build())
                 .toList();
