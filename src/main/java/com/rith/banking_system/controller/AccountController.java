@@ -48,9 +48,9 @@ public class AccountController {
 
     @PostMapping("/create")
     public String createAccount(@Valid @RequestBody CreateAccountRequest request) {
-        accountService.createAccount(
-                request.getUserId(),
-                request.getAccountNumber());
+
+        accountService.createAccount(request.getAccountNumber());
+
         return "Account created successfully";
     }
 

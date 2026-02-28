@@ -3,6 +3,7 @@ package com.rith.banking_system.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,136 +29,142 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccountService {
 
-    private final AccountRepository accountRepository;
-    private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
+        private final AccountRepository accountRepository;
+        private final TransactionRepository transactionRepository;
+        private final UserRepository userRepository;
 
-    public Account createAccount(Long userId, String accountNumber) {
+        public Account createAccount(String accountNumber) {
 
-        if (accountRepository.existsByAccountNumber(accountNumber)) {
-            throw new DuplicateAccountException("Account number already exists");
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
+
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+                if (accountRepository.existsByAccountNumber(accountNumber)) {
+                        throw new DuplicateAccountException("Account number already exists");
+                }
+
+                Account account = Account.builder()
+                                .accountNumber(accountNumber)
+                                .balance(0.0)
+                                .status(AccountStatus.ACTIVE)
+                                .user(user)
+                                .build();
+
+                return accountRepository.save(account);
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .balance(0.0)
-                .status(AccountStatus.ACTIVE)
-                .user(user)
-                .build();
+        public void deposit(String accountNumber, Double amount) {
 
-        return accountRepository.save(account);
-    }
+                Account account = accountRepository.findByAccountNumber(accountNumber)
+                                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-    public void deposit(String accountNumber, Double amount) {
+                if (account.getStatus() == AccountStatus.FROZEN) {
+                        throw new AccountFrozenException("Account is frozen");
+                }
 
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+                account.setBalance(account.getBalance() + amount);
+                accountRepository.save(account);
 
-        if (account.getStatus() == AccountStatus.FROZEN) {
-            throw new AccountFrozenException("Account is frozen");
+                Transaction transaction = Transaction.builder()
+                                .amount(amount)
+                                .type(TransactionType.DEPOSIT)
+                                .direction(TransactionDirection.CREDIT)
+                                .timestamp(LocalDateTime.now())
+                                .account(account)
+                                .build();
+
+                transactionRepository.save(transaction);
         }
 
-        account.setBalance(account.getBalance() + amount);
-        accountRepository.save(account);
+        public void withdraw(String accountNumber, Double amount) {
 
-        Transaction transaction = Transaction.builder()
-                .amount(amount)
-                .type(TransactionType.DEPOSIT)
-                .direction(TransactionDirection.CREDIT)
-                .timestamp(LocalDateTime.now())
-                .account(account)
-                .build();
+                Account account = accountRepository.findByAccountNumber(accountNumber)
+                                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        transactionRepository.save(transaction);
-    }
+                if (account.getStatus() == AccountStatus.FROZEN) {
+                        throw new AccountFrozenException("Account is frozen");
+                }
 
-    public void withdraw(String accountNumber, Double amount) {
+                if (account.getBalance() < amount) {
+                        throw new InsufficientBalanceException("Insufficient balance");
+                }
 
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+                account.setBalance(account.getBalance() - amount);
+                accountRepository.save(account);
 
-        if (account.getStatus() == AccountStatus.FROZEN) {
-            throw new AccountFrozenException("Account is frozen");
+                Transaction transaction = Transaction.builder()
+                                .amount(amount)
+                                .type(TransactionType.WITHDRAW)
+                                .direction(TransactionDirection.DEBIT)
+                                .timestamp(LocalDateTime.now())
+                                .account(account)
+                                .build();
+
+                transactionRepository.save(transaction);
         }
 
-        if (account.getBalance() < amount) {
-            throw new InsufficientBalanceException("Insufficient balance");
+        @Transactional
+        public void transfer(String fromAccountNumber, String toAccountNumber, Double amount) {
+
+                Account sender = accountRepository.findByAccountNumber(fromAccountNumber)
+                                .orElseThrow(() -> new AccountNotFoundException("Sender not found"));
+
+                Account receiver = accountRepository.findByAccountNumber(toAccountNumber)
+                                .orElseThrow(() -> new AccountNotFoundException("Receiver not found"));
+
+                if (sender.getStatus() == AccountStatus.FROZEN) {
+                        throw new AccountFrozenException("Sender account is frozen");
+                }
+
+                if (sender.getBalance() < amount) {
+                        throw new InsufficientBalanceException("Insufficient balance");
+                }
+
+                sender.setBalance(sender.getBalance() - amount);
+                receiver.setBalance(receiver.getBalance() + amount);
+
+                accountRepository.save(sender);
+                accountRepository.save(receiver);
+
+                Transaction senderTransaction = Transaction.builder()
+                                .amount(amount)
+                                .type(TransactionType.TRANSFER)
+                                .direction(TransactionDirection.DEBIT)
+                                .timestamp(LocalDateTime.now())
+                                .account(sender)
+                                .build();
+
+                Transaction receiverTransaction = Transaction.builder()
+                                .amount(amount)
+                                .type(TransactionType.TRANSFER)
+                                .direction(TransactionDirection.CREDIT)
+                                .timestamp(LocalDateTime.now())
+                                .account(receiver)
+                                .build();
+
+                transactionRepository.save(senderTransaction);
+                transactionRepository.save(receiverTransaction);
         }
 
-        account.setBalance(account.getBalance() - amount);
-        accountRepository.save(account);
+        public List<TransactionResponse> getTransactionHistory(String accountNumber) {
 
-        Transaction transaction = Transaction.builder()
-                .amount(amount)
-                .type(TransactionType.WITHDRAW)
-                .direction(TransactionDirection.DEBIT)
-                .timestamp(LocalDateTime.now())
-                .account(account)
-                .build();
+                Account account = accountRepository.findByAccountNumber(accountNumber)
+                                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        transactionRepository.save(transaction);
-    }
+                List<Transaction> transactions = transactionRepository.findByAccount(account);
 
-    @Transactional
-    public void transfer(String fromAccountNumber, String toAccountNumber, Double amount) {
-
-        Account sender = accountRepository.findByAccountNumber(fromAccountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Sender not found"));
-
-        Account receiver = accountRepository.findByAccountNumber(toAccountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Receiver not found"));
-
-        if (sender.getStatus() == AccountStatus.FROZEN) {
-            throw new AccountFrozenException("Sender account is frozen");
+                return transactions.stream()
+                                .map(tx -> TransactionResponse.builder()
+                                                .id(tx.getId())
+                                                .amount(tx.getAmount())
+                                                .type(tx.getType().name())
+                                                .direction(tx.getDirection().name())
+                                                .timestamp(tx.getTimestamp())
+                                                .build())
+                                .toList();
         }
-
-        if (sender.getBalance() < amount) {
-            throw new InsufficientBalanceException("Insufficient balance");
-        }
-
-        sender.setBalance(sender.getBalance() - amount);
-        receiver.setBalance(receiver.getBalance() + amount);
-
-        accountRepository.save(sender);
-        accountRepository.save(receiver);
-
-        Transaction senderTransaction = Transaction.builder()
-                .amount(amount)
-                .type(TransactionType.TRANSFER)
-                .direction(TransactionDirection.DEBIT)
-                .timestamp(LocalDateTime.now())
-                .account(sender)
-                .build();
-
-        Transaction receiverTransaction = Transaction.builder()
-                .amount(amount)
-                .type(TransactionType.TRANSFER)
-                .direction(TransactionDirection.CREDIT)
-                .timestamp(LocalDateTime.now())
-                .account(receiver)
-                .build();
-
-        transactionRepository.save(senderTransaction);
-        transactionRepository.save(receiverTransaction);
-    }
-
-    public List<TransactionResponse> getTransactionHistory(String accountNumber) {
-
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
-
-        List<Transaction> transactions = transactionRepository.findByAccount(account);
-
-        return transactions.stream()
-                .map(tx -> TransactionResponse.builder()
-                        .id(tx.getId())
-                        .amount(tx.getAmount())
-                        .type(tx.getType().name())
-                        .direction(tx.getDirection().name())
-                        .timestamp(tx.getTimestamp())
-                        .build())
-                .toList();
-    }
 }
