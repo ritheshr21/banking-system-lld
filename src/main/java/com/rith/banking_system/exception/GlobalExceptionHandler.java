@@ -126,4 +126,19 @@ public class GlobalExceptionHandler {
 
                 return new ResponseEntity<>(error, HttpStatus.CONFLICT);
         }
+
+        @ExceptionHandler(UnauthorizedAccessException.class)
+        public ResponseEntity<ErrorResponse> handleUnauthorized(
+                        UnauthorizedAccessException ex,
+                        HttpServletRequest request) {
+
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.FORBIDDEN.value(),
+                                "Forbidden",
+                                ex.getMessage(),
+                                request.getRequestURI());
+
+                return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+        }
 }

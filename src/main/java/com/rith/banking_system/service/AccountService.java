@@ -18,6 +18,7 @@ import com.rith.banking_system.exception.AccountFrozenException;
 import com.rith.banking_system.exception.AccountNotFoundException;
 import com.rith.banking_system.exception.DuplicateAccountException;
 import com.rith.banking_system.exception.InsufficientBalanceException;
+import com.rith.banking_system.exception.UnauthorizedAccessException;
 import com.rith.banking_system.exception.UserNotFoundException;
 import com.rith.banking_system.repository.AccountRepository;
 import com.rith.banking_system.repository.TransactionRepository;
@@ -62,6 +63,8 @@ public class AccountService {
                 Account account = accountRepository.findByAccountNumber(accountNumber)
                                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
+                validateAccountOwnership(account);
+
                 if (account.getStatus() == AccountStatus.FROZEN) {
                         throw new AccountFrozenException("Account is frozen");
                 }
@@ -84,6 +87,8 @@ public class AccountService {
 
                 Account account = accountRepository.findByAccountNumber(accountNumber)
                                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+                validateAccountOwnership(account);
 
                 if (account.getStatus() == AccountStatus.FROZEN) {
                         throw new AccountFrozenException("Account is frozen");
@@ -112,6 +117,8 @@ public class AccountService {
 
                 Account sender = accountRepository.findByAccountNumber(fromAccountNumber)
                                 .orElseThrow(() -> new AccountNotFoundException("Sender not found"));
+
+                validateAccountOwnership(sender);
 
                 Account receiver = accountRepository.findByAccountNumber(toAccountNumber)
                                 .orElseThrow(() -> new AccountNotFoundException("Receiver not found"));
@@ -155,6 +162,8 @@ public class AccountService {
                 Account account = accountRepository.findByAccountNumber(accountNumber)
                                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
+                validateAccountOwnership(account);
+
                 List<Transaction> transactions = transactionRepository.findByAccount(account);
 
                 return transactions.stream()
@@ -166,5 +175,17 @@ public class AccountService {
                                                 .timestamp(tx.getTimestamp())
                                                 .build())
                                 .toList();
+        }
+
+        private void validateAccountOwnership(Account account) {
+
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
+
+                if (!account.getUser().getEmail().equals(email)) {
+                        throw new UnauthorizedAccessException("You are not allowed to access this account");
+                }
         }
 }
